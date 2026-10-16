@@ -1,0 +1,1545 @@
+{
+  "date": "2026-10-17",
+  "scope": "Synthetic host CPU integration; no real task accuracy or K1 acceptance",
+  "unit_tests": {
+    "passed": 12,
+    "python": "3.11.16"
+  },
+  "experiments": [
+    {
+      "run": "outputs/smoke/release-smoke",
+      "stages": {
+        "prepare": "PASS",
+        "train": "PASS",
+        "export": "PASS",
+        "quantize": "PASS",
+        "evaluate": "PASS",
+        "package": "PASS"
+      },
+      "names": [
+        "red_box"
+      ],
+      "input_hw": [
+        64,
+        96
+      ],
+      "onnx_opset": {
+        "": 17
+      },
+      "ir_version": 9,
+      "model_sha256": "746654081a906279aecc48c8af72db9702f892df75e9867e73b4353e54077465",
+      "quantization": {
+        "precision_level": 1,
+        "finetune_level": 2,
+        "analysis_enable": true
+      },
+      "calibration_type": "minmax",
+      "calibration_images": 12,
+      "evaluation": {
+        "fp32": {
+          "ap50": 0.0,
+          "ap50_95": 0.0,
+          "per_class": {
+            "red_box": {
+              "targets": 4,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            }
+          },
+          "protocol": "101 recall points; IoU .50:.05:.95; best-class anchors; class-aware NMS; no crowd annotations",
+          "operating_confidence": 0.25,
+          "model_sha256": "85fd6d8a725dc90ff3fabab10b17fc33e0f770cc63d8703cdb3d7f8f1ac31717",
+          "bytes": 12065297,
+          "images": 4,
+          "host_cpu_inference_ms": {
+            "p50": 3.4057680022669956,
+            "p95": 4.370485542312963
+          }
+        },
+        "int8": {
+          "ap50": 0.0,
+          "ap50_95": 0.0,
+          "per_class": {
+            "red_box": {
+              "targets": 4,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            }
+          },
+          "protocol": "101 recall points; IoU .50:.05:.95; best-class anchors; class-aware NMS; no crowd annotations",
+          "operating_confidence": 0.25,
+          "model_sha256": "746654081a906279aecc48c8af72db9702f892df75e9867e73b4353e54077465",
+          "bytes": 3215179,
+          "images": 4,
+          "host_cpu_inference_ms": {
+            "p50": 7.354657995165326,
+            "p95": 7.750633154500974
+          }
+        }
+      },
+      "archive_sha256": "9010a04b9b7583bc88d1352fadfd253c8204300fff09393f988fabe129c3eb4a",
+      "zip_crc": "PASS",
+      "package_file_hashes": "PASS"
+    },
+    {
+      "run": "outputs/replace_smoke/release-replace",
+      "stages": {
+        "prepare": "PASS",
+        "train": "PASS",
+        "export": "PASS",
+        "quantize": "PASS",
+        "evaluate": "PASS",
+        "package": "PASS"
+      },
+      "names": [
+        "person",
+        "bicycle",
+        "car",
+        "own_3",
+        "own_4",
+        "own_5",
+        "own_6",
+        "own_7",
+        "boat",
+        "traffic light",
+        "fire hydrant",
+        "stop sign",
+        "parking meter",
+        "bench",
+        "bird",
+        "cat",
+        "dog",
+        "horse",
+        "sheep",
+        "cow",
+        "elephant",
+        "bear",
+        "zebra",
+        "giraffe",
+        "backpack",
+        "umbrella",
+        "handbag",
+        "tie",
+        "suitcase",
+        "frisbee",
+        "skis",
+        "snowboard",
+        "sports ball",
+        "kite",
+        "baseball bat",
+        "baseball glove",
+        "skateboard",
+        "surfboard",
+        "tennis racket",
+        "bottle",
+        "wine glass",
+        "cup",
+        "fork",
+        "knife",
+        "spoon",
+        "bowl",
+        "banana",
+        "apple",
+        "sandwich",
+        "orange",
+        "broccoli",
+        "carrot",
+        "hot dog",
+        "pizza",
+        "donut",
+        "cake",
+        "chair",
+        "couch",
+        "potted plant",
+        "bed",
+        "dining table",
+        "toilet",
+        "tv",
+        "laptop",
+        "mouse",
+        "remote",
+        "keyboard",
+        "cell phone",
+        "microwave",
+        "oven",
+        "toaster",
+        "sink",
+        "refrigerator",
+        "book",
+        "clock",
+        "vase",
+        "scissors",
+        "teddy bear",
+        "hair drier",
+        "toothbrush"
+      ],
+      "input_hw": [
+        64,
+        64
+      ],
+      "onnx_opset": {
+        "": 17
+      },
+      "ir_version": 9,
+      "model_sha256": "7c400ed1a21f8414ffa377357e322627433d2e229bc5629ce9622e6017599265",
+      "quantization": {
+        "precision_level": 0,
+        "finetune_level": 0,
+        "analysis_enable": true
+      },
+      "calibration_type": "minmax",
+      "calibration_images": 12,
+      "evaluation": {
+        "fp32": {
+          "ap50": 0.0,
+          "ap50_95": 0.0,
+          "per_class": {
+            "person": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bicycle": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "car": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_3": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_4": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_5": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_6": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_7": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "boat": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "traffic light": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "fire hydrant": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "stop sign": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "parking meter": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bench": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bird": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cat": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "dog": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "horse": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "sheep": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cow": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "elephant": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bear": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "zebra": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "giraffe": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "backpack": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "umbrella": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "handbag": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "tie": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "suitcase": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "frisbee": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "skis": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "snowboard": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "sports ball": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "kite": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "baseball bat": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "baseball glove": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "skateboard": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "surfboard": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "tennis racket": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bottle": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "wine glass": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cup": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "fork": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "knife": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "spoon": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bowl": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "banana": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "apple": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "sandwich": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "orange": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "broccoli": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "carrot": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "hot dog": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "pizza": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "donut": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cake": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "chair": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "couch": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "potted plant": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bed": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "dining table": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "toilet": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "tv": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "laptop": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "mouse": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "remote": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "keyboard": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cell phone": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "microwave": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "oven": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "toaster": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "sink": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "refrigerator": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "book": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "clock": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "vase": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "scissors": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "teddy bear": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "hair drier": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "toothbrush": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            }
+          },
+          "protocol": "101 recall points; IoU .50:.05:.95; best-class anchors; class-aware NMS; no crowd annotations",
+          "operating_confidence": 0.25,
+          "model_sha256": "50d6109a20d685149c6e511d1e453f6a949f1bd377b601ce7c2c8415c41d6b71",
+          "bytes": 12650399,
+          "images": 4,
+          "host_cpu_inference_ms": {
+            "p50": 3.138416497677099,
+            "p95": 3.385282857925631
+          }
+        },
+        "int8": {
+          "ap50": 0.0,
+          "ap50_95": 0.0,
+          "per_class": {
+            "person": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bicycle": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "car": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_3": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_4": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_5": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_6": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "own_7": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "boat": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "traffic light": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "fire hydrant": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "stop sign": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "parking meter": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bench": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bird": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cat": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "dog": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "horse": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "sheep": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cow": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "elephant": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bear": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "zebra": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "giraffe": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "backpack": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "umbrella": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "handbag": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "tie": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "suitcase": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "frisbee": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "skis": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "snowboard": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "sports ball": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "kite": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "baseball bat": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "baseball glove": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "skateboard": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "surfboard": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "tennis racket": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bottle": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "wine glass": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cup": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "fork": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "knife": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "spoon": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bowl": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "banana": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "apple": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "sandwich": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "orange": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "broccoli": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "carrot": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "hot dog": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "pizza": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "donut": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cake": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "chair": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "couch": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "potted plant": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "bed": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "dining table": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "toilet": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "tv": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "laptop": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "mouse": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "remote": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "keyboard": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "cell phone": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "microwave": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "oven": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "toaster": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "sink": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "refrigerator": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "book": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "clock": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "vase": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "scissors": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "teddy bear": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "hair drier": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            },
+            "toothbrush": {
+              "targets": 2,
+              "predictions_at_threshold": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "ap50": 0.0,
+              "ap50_95": 0.0
+            }
+          },
+          "protocol": "101 recall points; IoU .50:.05:.95; best-class anchors; class-aware NMS; no crowd annotations",
+          "operating_confidence": 0.25,
+          "model_sha256": "7c400ed1a21f8414ffa377357e322627433d2e229bc5629ce9622e6017599265",
+          "bytes": 3364534,
+          "images": 4,
+          "host_cpu_inference_ms": {
+            "p50": 6.117415505286772,
+            "p95": 7.175263701356016
+          }
+        }
+      },
+      "archive_sha256": "0baf78985e2720a5d25cd903b53a547608066e0098ef466ebc786a70df439c64",
+      "zip_crc": "PASS",
+      "package_file_hashes": "PASS"
+    }
+  ],
+  "cache": "all six stages reused unchanged results",
+  "resume": "interrupted after epoch 1 of 3; resumed remaining 2 epochs and exported",
+  "guards": [
+    "changed prepared labels rejected",
+    "missing test rejected while preserving val report"
+  ],
+  "source_sha256": {
+    "src/k1_yolo/__init__.py": "8a424a5c14e69f2e30b58e30c9f75d0d24b3a54e1bd43800d854ad4516dc09be",
+    "src/k1_yolo/assets.py": "297725856e4097ea25644966ab433033fc592a32f966df353c3ad78c8dd12f07",
+    "src/k1_yolo/classes.py": "9ae8fdc8c77b9173ff9c5194a5a2948e7c4bd36ca9777868c9b3d6fe00424907",
+    "src/k1_yolo/cli.py": "21fdc246082a9f1968ac1ca1656107af272531699afdc2534e91cf6860635b68",
+    "src/k1_yolo/common.py": "ef4ab363d98e190c7bb7c7ab87a5ef730c809733177d88333090ba66417c60c7",
+    "src/k1_yolo/config.py": "0e3dcc99765683842b28412bb8e151a86abde237bcba1d3e1994201a19072a50",
+    "src/k1_yolo/data.py": "b1c1950c158108f279ad2081f8433bb2ed7b36654751da310321c40e0f1bf9b3",
+    "src/k1_yolo/evaluation.py": "e3128f496709267b073adeeab7dff0b1ab7b15c17f935820dc02809cd687d5d1",
+    "src/k1_yolo/exporting.py": "0356dd1f5103ff8ea27075858595eb7d37b7259a5dc1f38d9cdf6c13c146cd08",
+    "src/k1_yolo/packaging.py": "74913f116b5ce8e30230de98fdca699f4b4b5764b387382b4215d28967ca1497",
+    "src/k1_yolo/postprocess.py": "86b7b64af3c1a0d4926b9e70a00afbae3688aa08183cadd4c1b7a48f7cf817ee",
+    "src/k1_yolo/preprocess.py": "ab87159e9c80a4fefadfe2ee9e28fe13a2367f80c5d3f13005f247501ded5ce1",
+    "src/k1_yolo/quantization.py": "39629260f5b90cd602c6707e683cf951c2e9a77d4a806317affa3d69140ff5a8",
+    "src/k1_yolo/training.py": "f791eee2c9fa6bdfe823336eb632b5cb1c746d8a9b79297a6ae6b8fd03f3350e"
+  },
+  "pending": [
+    "real project data",
+    "CUDA hardware",
+    "K1 EP partition/performance",
+    "ROS N-class adaptation",
+    "43-Conv trainable architecture",
+    "independent second-computer reproduction"
+  ]
+}

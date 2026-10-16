@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools==80.9.0", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "k1-yolo"
+version = "0.1.0"
+description = "Reproducible YOLO training and official XSlim quantization for SpacemiT K1"
+license = "AGPL-3.0-only"
+requires-python = ">=3.10,<3.13"
+dependencies = ["PyYAML==6.0.3", "numpy==2.2.6", "Pillow==11.3.0", "opencv-python==4.12.0.88"]
+
+[project.scripts]
+k1-yolo = "k1_yolo.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

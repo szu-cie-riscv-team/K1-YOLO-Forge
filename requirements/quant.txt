@@ -1,0 +1,9 @@
+# Separate from the training/export environment.
+xslim==2.1.2
+setuptools==80.9.0
+onnx==1.21.0
+onnxruntime==1.24.3
+numpy==2.2.6
+Pillow==11.3.0
+PyYAML==6.0.3
+opencv-python==4.12.0.88

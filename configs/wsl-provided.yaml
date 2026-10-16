@@ -1,0 +1,24 @@
+# 实际名称需与 classes.txt、标签顺序一致；其余参数继承 config.example.yaml。
+project:
+  name: pharmacy_yolo
+classes:
+  mode: custom_only
+  custom_names: [box_a, box_b, box_c, box_d]
+model:
+  input_hw: [320, 320]
+data:
+  source_dir: data/raw
+  split_by: capture_group
+  split:
+    mode: provided
+    expected_counts: {train: 200, val: 50, test: 0}
+  calibration_source: directory
+  calibration_dir: data/calibration/images
+train:
+  epochs: 200
+  patience: 50
+  batch: auto
+  device: auto
+quantize:
+  calibration:
+    max_samples: 500

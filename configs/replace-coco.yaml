@@ -1,0 +1,23 @@
+project:
+  name: replace_coco_demo
+classes:
+  mode: replace_coco
+  replace_coco:
+    keep_original: ['0-2', '8-79']
+    custom_slots:
+      3: {name: custom_a, annotation_id: 0}
+      4: {name: custom_b, annotation_id: 1}
+      5: {name: custom_c, annotation_id: 2}
+      6: {name: custom_d, annotation_id: 3}
+      7: {name: custom_e, annotation_id: 4}
+    replay_data: data/replay
+    replay_train_fraction: 0.5
+    retained_validation_data: data/retained_val
+data:
+  source_dir: data/raw
+  split:
+    mode: provided
+  calibration_source: directory
+  calibration_dir: data/calibration/images
+# replay、retained_val 各自为 images/、labels/、groups.csv。
+# 其标签须是已经转为连续 0..79 的 COCO 模型编号，不是原始 COCO JSON category_id。

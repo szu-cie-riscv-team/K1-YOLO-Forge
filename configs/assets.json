@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "assets": {
+    "yolov8n.pt": {
+      "url": "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8n.pt",
+      "sha256": "f59b3d833e2ff32e194b5bb8e08d211dc7c5bdf144b90d2c8412c47ccfc83b36",
+      "bytes": 6549796,
+      "license_url": "https://www.ultralytics.com/license",
+      "source": "Ultralytics assets release v8.3.0; retrieved and hashed 2026-10-17"
+    }
+  }
+}

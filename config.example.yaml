@@ -1,0 +1,122 @@
+# Linux/WSL 流水线配置。复制为 config.yaml，或通过 --config 指定文件。
+# 所有相对路径按项目根目录解析。
+schema_version: 1
+project:
+  name: pharmacy_yolo
+  seed: 42
+  output_dir: outputs
+
+classes:
+  mode: custom_only  # custom_only | replace_coco
+  # custom_only 的编号按顺序从 0 开始。以下名称只是示例，不预设实物颜色映射。
+  custom_names: [box_a, box_b, box_c, box_d]
+  # replace_coco 示例：范围包含两端，编号为 COCO 连续 0-based 模型编号。
+  # 与 COCO 原始 JSON category_id 不同。
+  replace_coco:
+    keep_original: ["0-2", "8-79"]
+    custom_slots:
+      3: {name: custom_a, annotation_id: 0}
+      4: {name: custom_b, annotation_id: 1}
+      5: {name: custom_c, annotation_id: 2}
+      6: {name: custom_d, annotation_id: 3}
+      7: {name: custom_e, annotation_id: 4}
+    replay_data: data/replay
+    replay_train_fraction: 0.5  # 混合训练集中原类回放图片占比；起始值，需按原/新类指标调整
+    # 保留类模式必须提供旧类回放及独立验证集，不能只保留通道宣称能力不变。
+    retained_validation_data: data/retained_val
+
+data:
+  source_dir: data/raw
+  split_by: capture_group  # 按采集批次/视频/实物分组；禁止临近帧跨集
+  split:
+    mode: ratios  # ratios | counts | provided；provided 保留已划分的 train/val/test
+    ratios: {train: 0.8, val: 0.1, test: 0.1}
+    # 切换为 counts 后启用。单位是最终数据集的图片张数，含已确认的背景图。
+    # 以下仅为示例数量；保留类模式包含原类回放与自定义图，报告分别列出来源数量。
+    counts: {train: 800, val: 100, test: 100}
+    # 先隔离采集组，再在各集合内抽样；不足则报错，不自动重复或跨组拆分。
+    count_policy: exact
+    # provided 模式只核对，不重新抽样；null 表示不限定该集合数量。
+    expected_counts: {train: null, val: null, test: null}
+  calibration_source: train  # train | directory；directory 使用以下独立图片目录
+  calibration_dir: data/calibration/images
+
+model:
+  architecture: yolov8n_standard  # 首轮可追溯基线
+  input_hw: [320, 320]  # 默认训练/导出分辨率，[高, 宽]；可设为 [192, 320] 等 32 的倍数
+  pretrained: models/pretrained/yolov8n.pt
+  # 高速参考兼容结构需先实现并验证，不是可直接切换的现成选项。
+
+train:
+  # 工程初始值，尚未使用本项目数据调优；不宣称全局最优。
+  input_hw: null  # null 跟随 model.input_hw；最终训练张量的高宽会被实际检查
+  epochs: 200
+  patience: 50
+  batch: auto  # 由工程入口按 CUDA 显存选择；不能原样转交所有训练后端
+  device: auto
+  workers: auto
+  optimizer: AdamW
+  lr0: 0.001
+  weight_decay: 0.0005
+  amp: auto
+  deterministic: true
+  resume_from: null  # 断点续训的 last.pt 路径；与预训练初始化区分
+  freeze: 0  # 冻结的前部层数；不保证保留原类能力
+  hsv_h: 0.0   # 颜色决定类别，禁用改变色相的增强
+  hsv_s: 0.2
+  hsv_v: 0.2
+  fliplr: 0.5
+  flipud: 0.0
+  mosaic: 0.5
+  close_mosaic: 10
+  mixup: 0.0
+
+export:
+  input_hw: null  # null 跟随 model.input_hw；允许覆盖，按部署尺寸单独校准和评估
+  batch: 1
+  dynamic: false
+  opset: 17
+  output_format: yolov8_dfl_9outputs
+  reg_max: 16
+  embed_nms: false
+  allowed_custom_domains: []  # 首条路线不接受未经验证的新增自定义算子
+
+preprocess:
+  color: rgb
+  layout: nchw
+  dtype: float32
+  resize: letterbox
+  interpolation: linear
+  padding_value: 114
+  scale: 0.00392156862745098
+
+quantize:
+  tool: xslim
+  # 2.1.2 已通过 CPU 量化烟测；K1 板端验证仍待完成。
+  candidate_version: 2.1.2
+  opset: 17  # 必须传给 XSlim，导出后再次核对；不能只设置 PyTorch 导出
+  calibration:
+    max_samples: 500
+    batch_size: 1
+    device: auto
+    type: default
+    preprocess: shared_letterbox  # 工程将生成官方支持的 script.py:function 引用
+  precision_level: 1  # 官方检测示例起点；同时对比 p0f2，非“数值越大越快”
+  finetune_level: 2
+  analysis_enable: true
+
+evaluation:
+  confidence_threshold: 0.001  # AP 低分预筛选，独立于部署阈值
+  nms_iou_threshold: 0.7
+  max_detections: 300
+  max_map_drop: null  # 可接受绝对 mAP50-95 损失，如 0.02；null 不宣称精度达标
+
+deploy:
+  target: spacemit_k1
+  provider: SpaceMITExecutionProvider
+  ort_threads: {intra: 1, inter: 1}
+  ep_threads: {intra: 4, inter: 1}
+  confidence_threshold: 0.25
+  nms_iou_threshold: 0.45
+  max_detections: 100
+  # 小于 80 类需要适配现有 ROS 解码器；只导出模型不代表部署端已经支持。
