@@ -2,7 +2,7 @@
 
 在 Linux/WSL 中，从 YOLO 格式标注数据完成检查、训练、九输出 ONNX 导出、官方 XSlim 静态 INT8 量化、精度比较与部署打包。
 
-**状态：首版实现，已通过主机 CPU 端到端验证。** 标准 YOLOv8n 路线已实现；43-Conv/LeakyReLU 高速参考结构尚未实现训练。CUDA 与 K1 实机状态以 [验证记录](docs/implementation-validation.md) 为准，不把主机结果当作板端验收。
+**状态：首版实现，已通过端到端验证。** 用户可选 `fast`（默认）和 `normal` 两套训练量化方案。`fast` 按公开量化 ONNX 近似重建 43-Conv/LeakyReLU/RepConv 部署拓扑；用户实测其 K1 推理速度接近 Gitee 参考模型。`normal` 保留标准 YOLOv8n 与此前 XSlim 配方。详见[使用说明](docs/usage.md)和[验证记录](docs/implementation-validation.md)。
 
 ## 快速开始：已有 200 train / 50 val / 500 calibration
 
@@ -50,6 +50,7 @@ data/
 根目录 [config.example.yaml](config.example.yaml) 是完整参数表；使用者在 `config.yaml` 中覆盖需要调整的项。未知参数报错，完整解析值随实验保存。
 
 - `model.input_hw: [高, 宽]`：统一默认尺寸，正的 32 倍数。`train.input_hw` / `export.input_hw` 可分别覆盖。
+- `workflow.scheme`：选择 `fast` 或 `normal`，默认 `fast`。方案会自动选择架构和对应 XSlim 配方；训练与量化参数在 `config.example.yaml` 的 `workflow.profiles` 中集中调整。切换方案后需重新训练，不能混用另一方案的 checkpoint。
 - `data.split.mode: provided`：保留已有 train/val/test，仅核对 `expected_counts`。
 - `counts`：从未划分的 images/labels 中按张数选择，先隔离组，再抽样；数量不足报错。
 - `ratios`：按比例选择；整组隔离后无法满足数量时说明原因，不拆组跨集。
@@ -108,6 +109,7 @@ python3 run_k1.py --image /path/to/image.jpg --report k1-result.json --profile
 - [原流程与设计依据](docs/pipeline-design.md)
 - [WSL 200/50/500 场景](docs/wsl-walkthrough.md)
 - [K1/XSlim 调研](docs/research/2026-10-17-k1-xslim.md)
+- [Gitee SpacemiT YOLOv8 对照与配置映射](docs/research/2026-10-19-gitee-yolov8-alignment.md)
 - [参考模型结构证据](docs/research/reference-models.json)
 - [依赖与许可来源](THIRD_PARTY.md)
 

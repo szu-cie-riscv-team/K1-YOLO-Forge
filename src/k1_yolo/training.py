@@ -71,6 +71,41 @@ def reset_replaced_rows(model, indices):
                 conv.bias[indices] = math.log(5 / 80 / (640/float(head.stride[branch_index]))**2)
 
 
+def transfer_k1_fast_pretrained(model, checkpoint):
+    """Transfer matching stem/head tensors, never unrelated backbone layers."""
+    from ultralytics import YOLO
+    source = YOLO(str(checkpoint)).model.cpu().float()
+    if source.yaml.get("architecture") == "yolov8n_k1_fast":
+        model.load(source)
+        return "K1-fast checkpoint: compatible tensors"
+    source_stem = source.model[0].conv
+    target_stem = model.model[0].conv
+    if source_stem.state_dict().keys() != target_stem.state_dict().keys():
+        raise ValueError("Standard checkpoint stem layout differs from the K1-fast stem")
+    if any(source_stem.state_dict()[k].shape != target_stem.state_dict()[k].shape for k in source_stem.state_dict()):
+        raise ValueError("Standard checkpoint stem channels differ from the K1-fast architecture")
+    target_stem.load_state_dict(source_stem.state_dict())
+    copied = ["model.0.conv"]
+    source_head, target_head = source.model[-1], model.model[-1]
+    if source_head.nc == 80 and target_head.nc in {1, 80} and source_head.nl == target_head.nl == 3:
+        for branch_name in ["cv2", "cv3"]:
+            for branch_index, (source_branch, target_branch) in enumerate(zip(
+                    getattr(source_head, branch_name), getattr(target_head, branch_name))):
+                target_modules = dict(target_branch.named_modules())
+                for name, source_module in source_branch.named_modules():
+                    if not name or any(source_module.children()):
+                        continue
+                    target_module = target_modules.get(name)
+                    if target_module is None or type(target_module) is not type(source_module):
+                        continue
+                    source_state, target_state = source_module.state_dict(), target_module.state_dict()
+                    if source_state.keys() == target_state.keys() and all(
+                            source_state[key].shape == target_state[key].shape for key in source_state):
+                        target_module.load_state_dict(source_state)
+                        copied.append(f"head.{branch_name}.{branch_index}.{name}")
+    return f"standard YOLO checkpoint: transferred {len(copied)} matching stem/head modules"
+
+
 def train(cfg, run):
     import torch
     from ultralytics import YOLO
@@ -88,19 +123,41 @@ def train(cfg, run):
     resume = cfg.path(options["resume_from"])
     if source is not None and not source.is_file() and resume is None:
         raise ValueError(f"Pretrained weights missing: {source}; run download_assets.sh or use pretrained: null")
-    yolo = YOLO(str(resume or source) if (resume or source) else "yolov8n.yaml")
+    architecture = cfg["model"]["architecture"]
+    if architecture == "yolov8n_k1_fast":
+        from .architectures import fast_model_yaml, register_k1_fast_modules
+        register_k1_fast_modules()
+        yolo = YOLO(str(resume) if resume else fast_model_yaml())
+    else:
+        yolo = YOLO(str(resume or source) if (resume or source) else "yolov8n.yaml")
     from ultralytics.nn.modules.head import Detect
-    if len(yolo.model.model)!=23 or not isinstance(yolo.model.model[-1],Detect) or yolo.model.model[0].conv.out_channels!=16:
+    if not isinstance(yolo.model.model[-1],Detect) or yolo.model.model[0].conv.out_channels!=16:
+        raise ValueError(f"Configured {architecture} has an unexpected detector topology")
+    if architecture == "yolov8n_standard" and len(yolo.model.model) != 23:
         raise ValueError("Configured yolov8n_standard requires the standard YOLOv8n topology")
+    if architecture == "yolov8n_k1_fast" and len(yolo.model.model) != 31:
+        raise ValueError("Configured yolov8n_k1_fast requires the 31-layer reference approximation")
     if replaced and not resume:
         from .classes import COCO
-        source_names = list(yolo.model.names.values()) if isinstance(yolo.model.names, dict) else yolo.model.names
-        if source is None or source_names != COCO:
+        if source is None:
+            raise ValueError("replace_coco initialization requires the standard 80-class checkpoint")
+        source_model = yolo.model if architecture == "yolov8n_standard" else YOLO(str(source)).model
+        source_names = list(source_model.names.values()) if isinstance(source_model.names, dict) else source_model.names
+        if source_names != COCO:
             raise ValueError("replace_coco initialization must have the standard 80 COCO class names")
+
+    pretrained_transfer = ("resume checkpoint" if resume else
+                           "standard Ultralytics pretrained checkpoint" if architecture == "yolov8n_standard" and source else
+                           "random initialization")
 
     class ProjectTrainer(DetectionTrainer):
         def get_model(self, cfg=None, weights=None, verbose=True):
+            nonlocal pretrained_transfer
             model = super().get_model(cfg, weights, verbose)
+            if architecture == "yolov8n_k1_fast" and source is not None and not resume:
+                # Match by semantic detector branch and exact tensor shape;
+                # other backbone layers use different topology and stay fresh.
+                pretrained_transfer = transfer_k1_fast_pretrained(model, source)
             if replaced and not resume:
                 if weights is None:
                     raise ValueError("replace_coco requires pretrained initialization")
@@ -157,7 +214,9 @@ def train(cfg, run):
     if not best.is_file():
         raise RuntimeError("Training did not produce best.pt")
     write_json(run/"training.json", {"best": str(best), "sha256": digest(best), "save_dir": str(actual),
+                "scheme": cfg["workflow"]["scheme"], "architecture": architecture,
                 "input_hw": hw, "device": device, "batch_requested": batch,
                 "batch_actual": yolo.trainer.batch_size, "environment": environment(),
+                "pretrained_transfer": pretrained_transfer,
                 "retained_class_preservation": "requires independent regression; no guarantee from initialization"})
     return run/"training.json"

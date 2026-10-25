@@ -6,6 +6,22 @@ project:
   seed: 42
   output_dir: outputs
 
+workflow:
+  scheme: fast  # fast | normal；fast 为默认，选择后自动套用对应架构和 XSlim 配方
+  profiles:
+    fast:
+      architecture: yolov8n_k1_fast
+      precision_level: 0
+      finetune_level: 3
+      calibration_type: minmax
+      max_percentile: 0.9995
+    normal:
+      architecture: yolov8n_standard
+      precision_level: 1
+      finetune_level: 2
+      calibration_type: default
+      max_percentile: null
+
 classes:
   mode: custom_only  # custom_only | replace_coco
   # custom_only 的编号按顺序从 0 开始。以下名称只是示例，不预设实物颜色映射。
@@ -42,10 +58,9 @@ data:
   calibration_dir: data/calibration/images
 
 model:
-  architecture: yolov8n_standard  # 首轮可追溯基线
   input_hw: [320, 320]  # 默认训练/导出分辨率，[高, 宽]；可设为 [192, 320] 等 32 的倍数
   pretrained: models/pretrained/yolov8n.pt
-  # 高速参考兼容结构需先实现并验证，不是可直接切换的现成选项。
+  # fast 使用项目内 43-Conv 重参数化近似架构；从标准权重只迁移同构 stem/检测头张量。
 
 train:
   # 工程初始值，尚未使用本项目数据调优；不宣称全局最优。
@@ -99,10 +114,12 @@ quantize:
     max_samples: 500
     batch_size: 1
     device: auto
-    type: default
+    type: minmax  # 由 workflow.scheme 解析；具体方案可在 workflow.profiles 中调整
     preprocess: shared_letterbox  # 工程将生成官方支持的 script.py:function 引用
-  precision_level: 1  # 官方检测示例起点；同时对比 p0f2，非“数值越大越快”
-  finetune_level: 2
+  # 以下是 fast 当前生效值；由 workflow.scheme 自动解析，可在 workflow.profiles 中调整。
+  precision_level: 0
+  finetune_level: 3
+  max_percentile: 0.9995
   analysis_enable: true
 
 evaluation:

@@ -17,7 +17,7 @@ def package(cfg,run):
     target=final_target.with_name(final_target.name+".building-"+uuid.uuid4().hex[:8])
     target.mkdir(parents=True,exist_ok=False)
     model=run/"quantize/model.q.onnx"
-    contract=check_onnx(model,cfg.hw("export"),cfg.classes["nc"],True)
+    contract=check_onnx(model,cfg.hw("export"),cfg.classes["nc"],True,cfg["model"]["architecture"])
     if digest(model)!=report["models"]["int8"]["model_sha256"]:
         raise ValueError("Quantized model changed since evaluation")
     shutil.copy2(model,target/"model.q.onnx")
@@ -33,7 +33,8 @@ def package(cfg,run):
     for name in ["__init__.py","preprocess.py","postprocess.py"]:
         shutil.copy2(Path(__file__).with_name(name),runtime/name)
     shutil.copy2(cfg.root/"tools/run_k1.py",target/"run_k1.py")
-    manifest={"schema_version":1,"run_id":run.name,"architecture":cfg["model"]["architecture"],"class_mode":cfg.classes["mode"],
+    manifest={"schema_version":1,"run_id":run.name,"scheme":cfg["workflow"]["scheme"],
+              "architecture":cfg["model"]["architecture"],"class_mode":cfg.classes["mode"],
               "names":cfg.classes["names"],"model_contract":contract,"dataset_manifest_sha256":digest(run/"prepare/manifest.json"),
               "training":read_json(run/"training.json") if (run/"training.json").exists() else {"checkpoint":"externally supplied"},
               "quantization":read_json(run/"quantize/contract.json"),"evaluation":report,

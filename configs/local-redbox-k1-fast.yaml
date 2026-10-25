@@ -1,0 +1,31 @@
+# 本机红色方块数据：按公开 SpaceMIT 高速 ONNX 近似架构训练。
+# 数据沿用 data/raw（15 train / 5 val）与 data/calibration（当前检出 91 张校准图）。
+project:
+  name: pharmacy_yolo
+  seed: 42
+
+workflow:
+  scheme: fast
+
+classes:
+  mode: custom_only
+  custom_names: [red_box]
+
+model:
+  input_hw: [320, 320]
+  pretrained: models/pretrained/yolov8n.pt
+
+data:
+  source_dir: data/raw
+  split_by: image
+  split:
+    mode: provided
+    expected_counts: {train: 15, val: 5, test: 0}
+  calibration_source: directory
+  calibration_dir: data/calibration
+
+train:
+  epochs: 200
+  patience: 50
+  batch: auto
+  device: auto

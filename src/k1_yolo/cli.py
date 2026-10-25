@@ -63,7 +63,12 @@ def stage_key(cfg,stage,state,args,memo=None):
         consumed=state.get("train",{}).get("resume_input")
         sha=(consumed["sha256"] if consumed and consumed["path"]==str(path) and state["train"].get("status")=="PASS"
              else digest(path) if path and path.is_file() else None)
-        return remember(fingerprint([dep,cfg["train"],cfg["model"],cfg.hw("train"),str(path),sha]))
+        architecture_file=(cfg.root/"src/k1_yolo/models/yolov8n_k1_fast.yaml"
+                           if cfg["model"]["architecture"]=="yolov8n_k1_fast" else None)
+        architecture_sha=digest(architecture_file) if architecture_file and architecture_file.is_file() else None
+        if cfg["model"]["architecture"]=="yolov8n_k1_fast" and architecture_sha is None:
+            raise ValueError(f"K1-fast architecture YAML missing: {architecture_file}")
+        return remember(fingerprint([dep,cfg["train"],cfg["model"],cfg.hw("train"),str(path),sha,architecture_sha]))
     if stage=="export":
         checkpoint=Path(checkpoint_arg).resolve() if checkpoint_arg else Path(read_json(Path(state["train"]["artifact"]))["best"])
         return remember(fingerprint([dep,cfg["export"],cfg.hw("export"),digest(checkpoint)]))
@@ -180,6 +185,12 @@ def doctor(cfg):
         a=torch.ones((16,16),device="cuda");(a@a).sum().item()
         result["gpu"]=torch.cuda.get_device_name(0)
     result["train_input_hw"]=cfg.hw("train");result["export_input_hw"]=cfg.hw("export")
+    result["workflow_scheme"]=cfg["workflow"]["scheme"]
+    result["architecture"]=cfg["model"]["architecture"]
+    result["xslim_profile"]={"precision_level":cfg["quantize"]["precision_level"],
+                              "finetune_level":cfg["quantize"]["finetune_level"],
+                              "calibration_type":cfg["quantize"]["calibration"]["type"],
+                              "max_percentile":cfg["quantize"]["max_percentile"]}
     result["classes"]=cfg.classes
     result["free_disk_gib"]=shutil.disk_usage(cfg.root).free/(1024**3)
     write_json(cfg.path(cfg["project"]["output_dir"])/"environment.json",result)

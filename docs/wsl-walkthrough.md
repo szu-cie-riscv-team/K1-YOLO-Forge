@@ -47,6 +47,8 @@ data/
 classes:
   mode: custom_only
   custom_names: [box_a, box_b, box_c, box_d]
+workflow:
+  scheme: fast  # fast | normal；默认 fast
 model:
   input_hw: [320, 320]
 data:
@@ -61,10 +63,9 @@ train:
   patience: 50
   batch: auto
   device: auto
-quantize:
-  calibration:
-    max_samples: 500
 ```
+
+方案选择会自动设置架构和 XSlim 配方；如需调整方案默认值，编辑 `config.example.yaml` 的 `workflow.profiles`。
 
 provided 模式不打乱现有划分，数量核对失败时停止。此场景没有 test，记录独立测试待补，不将 val 改名成 test。
 
@@ -84,11 +85,11 @@ provided 模式不打乱现有划分，数量核对失败时停止。此场景�
 
 选择 best.pt 导出静态 FP32 ONNX：batch=1、输入 [1,3,320,320]、opset=17、九输出、类别通道为 N。核对张量语义和 PyTorch 对照，合格后才量化。
 
-独立量化环境读取这份 FP32 模型和 500 张校准图，使用与部署一致的预处理。工程生成官方 XSlim JSON 和校准清单，显式指定目标 opset；运行后保存 INT8 ONNX、日志和分析报告。对比配方时始终使用同一校准清单。
+独立量化环境读取这份 FP32 模型和最多 500 张校准图，使用与部署一致的预处理。工程生成官方 XSlim JSON 和校准清单，显式指定目标 opset；运行后保存 INT8 ONNX、日志和分析报告。fast 方案映射到 Gitee spacemit-demo 公布的 YOLOv8 xquant 配方；本项目仍使用 XSlim 2.1.2，不能据此声称与上游 Xquant 2.0.1 产物完全一致。normal 方案保留此前的 XSlim p1/f2 + default 配方。对比配方时始终使用同一校准清单。
 
 ## 7. 量化后评估与打包
 
-同一批 50 张验证图分别评估 FP32/INT8，使用一致的框解码与评估协议。报告逐类 AP、召回和性能/大小差异，不预填任何虚构结果。按照用户接受的精度损失选择配方；K1 未测时速度状态仍为待验。
+同一批验证图分别评估 FP32/INT8，使用一致的框解码与评估协议。报告逐类 AP、召回和模型大小，不预填任何虚构结果。用户已反馈 fast 模型的 K1 推理速度接近 Gitee 参考；新的硬件、固件和运行时仍需复测。
 
 模型包包含量化模型、labels.txt、class_map.json、推理配置、manifest、评估摘要和 K1 使用说明。FP32、checkpoint、完整日志留在 outputs，便于追溯。
 

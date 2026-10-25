@@ -67,7 +67,8 @@ def evaluate(cfg,run,subset="val"):
     reports={}
     folder=run/"evaluation";folder.mkdir(parents=True,exist_ok=True)
     for name,path in [("fp32",run/"export/model.fp32.onnx"),("int8",run/"quantize/model.q.onnx")]:
-        check_onnx(path,cfg.hw("export"),cfg.classes["nc"],quantized=name=="int8")
+        check_onnx(path,cfg.hw("export"),cfg.classes["nc"],quantized=name=="int8",
+                   architecture=cfg["model"]["architecture"])
         options=ort.SessionOptions();options.intra_op_num_threads=1;options.inter_op_num_threads=1
         session=ort.InferenceSession(str(path),sess_options=options,providers=["CPUExecutionProvider"])
         session.run(None,{"images":np.zeros((1,3,*cfg.hw("export")),dtype=np.float32)})

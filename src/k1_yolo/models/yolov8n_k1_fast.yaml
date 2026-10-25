@@ -1,0 +1,44 @@
+# Deployment-graph approximation based on the public SpacemiT YOLOv8n 320x320
+# ONNX. It is not the original training YAML (which is not published there).
+nc: 80
+architecture: yolov8n_k1_fast
+activation: nn.LeakyReLU(negative_slope=0.1, inplace=True)
+
+backbone:
+  # Stem and stages: 16 -> 32 -> 64 -> 96 -> 128 channels.
+  - [-1, 1, Conv, [16, 3, 2]]
+  - [-1, 1, RepConv, [32, 3, 2]]
+  - [-1, 1, RepConv, [32, 3, 1]]
+  - [-1, 1, RepConv, [64, 3, 2]]
+  - [-1, 1, RepConv, [64, 3, 1]]
+  - [-1, 1, RepConv, [64, 3, 1]]
+  - [-1, 1, RepConv, [96, 3, 2]]
+  - [-1, 1, RepConv, [96, 3, 1]]
+  - [-1, 1, RepConv, [96, 3, 1]]
+  - [-1, 1, RepConv, [128, 3, 2]]
+  - [-1, 1, SPPF, [128, 5]]
+  - [-1, 1, RepConv, [128, 3, 1]]
+
+head:
+  # Top-down path, P5 -> P4 -> P3.
+  - [-1, 1, Conv, [48, 1, 1]]
+  - [-1, 1, nn.Upsample, [None, 2, nearest]]
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 1, Conv, [96, 1, 1]]
+  - [-1, 1, RepConv, [96, 3, 1]]
+  - [-1, 1, Conv, [32, 1, 1]]
+  - [-1, 1, nn.Upsample, [None, 2, nearest]]
+  - [[-1, 5], 1, Concat, [1]]
+  - [-1, 1, Conv, [64, 1, 1]]
+  - [-1, 1, RepConv, [64, 3, 1]]
+
+  # Bottom-up PAN path, P3 -> P4 -> P5.
+  - [-1, 1, RepConv, [48, 3, 2]]
+  - [[-1, 16], 1, Concat, [1]]
+  - [-1, 1, Conv, [96, 1, 1]]
+  - [-1, 1, RepConv, [96, 3, 1]]
+  - [-1, 1, RepConv, [64, 3, 2]]
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 1, Conv, [128, 1, 1]]
+  - [-1, 1, RepConv, [128, 3, 1]]
+  - [[21, 25, 29], 1, Detect, [nc]]

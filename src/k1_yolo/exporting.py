@@ -14,7 +14,7 @@ def expected_shapes(hw, nc):
     return [[1,c,h//s,w//s] for s in [8,16,32] for c in [64,nc,1]]
 
 
-def check_onnx(path, hw, nc, quantized=False):
+def check_onnx(path, hw, nc, quantized=False, architecture="yolov8n_standard"):
     import onnx
     model = onnx.load(path)
     onnx.checker.check_model(model)
@@ -34,8 +34,20 @@ def check_onnx(path, hw, nc, quantized=False):
     if [shape(v) for v in model.graph.output] != expected_shapes(hw,nc):
         raise ValueError(f"Expected nine 64/{nc}/1 outputs at strides 8/16/32")
     counts = {}
-    initializers={v.name for v in model.graph.initializer}
+    initializers={v.name:v for v in model.graph.initializer}
     producers={name:node for node in model.graph.node for name in node.output}
+    def const_initializer(name):
+        seen=set()
+        while name in producers and name not in seen:
+            seen.add(name)
+            node=producers[name]
+            if node.op_type in {"Identity","DequantizeLinear"} and node.input:
+                name=node.input[0]
+            else:
+                return None
+        return initializers.get(name)
+    conv_weight_parameters=0
+    conv_bias_parameters=0
     allowed={"Conv","Sigmoid","Mul","Split","Add","Concat","MaxPool","Resize","ReduceSum","Clip",
              "LeakyRelu","QuantizeLinear","DequantizeLinear","Constant","Identity"}
     for node in model.graph.node:
@@ -45,24 +57,44 @@ def check_onnx(path, hw, nc, quantized=False):
         attrs = {a.name: onnx.helper.get_attribute_value(a) for a in node.attribute}
         if node.op_type == "Conv" and "kernel_shape" not in attrs:
             raise ValueError(f"Conv missing kernel_shape: {node.name}")
-        if node.op_type=="Conv" and node.input[1] not in initializers:
-            weight=producers.get(node.input[1])
-            if weight is None or weight.op_type!="DequantizeLinear" or weight.input[0] not in initializers:
+        if node.op_type=="Conv":
+            weight=const_initializer(node.input[1])
+            if weight is None:
                 raise ValueError(f"Conv weight must be constant or constant QDQ: {node.name}")
+            conv_weight_parameters+=int(np.prod(weight.dims))
+            if len(node.input)>2:
+                bias=const_initializer(node.input[2])
+                if bias is not None:
+                    conv_bias_parameters+=int(np.prod(bias.dims))
         if node.op_type == "Resize" and (attrs.get("mode",b"nearest") not in {b"nearest",b"linear"} or
                 attrs.get("coordinate_transformation_mode",b"half_pixel") not in {b"asymmetric",b"half_pixel"}):
             raise ValueError(f"Unsupported Resize attributes: {node.name}")
     qdq = counts.get("QuantizeLinear",0)>0 and counts.get("DequantizeLinear",0)>0
     if qdq != quantized:
         raise ValueError(f"Expected quantized={quantized}, got QDQ={qdq}")
+    if architecture == "yolov8n_k1_fast":
+        reference_counts = {"Conv":43,"LeakyRelu":37,"Sigmoid":3,"MaxPool":3,"Resize":2,
+                            "Concat":5,"ReduceSum":3,"Clip":3}
+        mismatches = {name:(counts.get(name,0),expected) for name,expected in reference_counts.items()
+                      if counts.get(name,0) != expected}
+        if mismatches:
+            raise ValueError(f"K1-fast graph differs from the inspected deployment profile: {mismatches}")
+        if counts.get("Mul",0) or counts.get("Split",0):
+            raise ValueError("K1-fast graph unexpectedly contains standard YOLOv8 SiLU/C2f operators")
+        if nc == 80 and (conv_weight_parameters,conv_bias_parameters)!=(1_815_472,3_264):
+            raise ValueError("80-class K1-fast Conv parameter profile differs from the inspected reference")
     return {"opsets":versions,"ir_version":model.ir_version,"operators":counts,"shapes":expected_shapes(hw,nc),
-            "sha256":digest(path),"static_check":"PASS","board_validation":"NOT_RUN"}
+            "architecture":architecture,"conv_weight_parameters":conv_weight_parameters,
+            "conv_bias_parameters":conv_bias_parameters,"sha256":digest(path),"static_check":"PASS","board_validation":"NOT_RUN"}
 
 
-def raw_model(checkpoint, names):
+def raw_model(checkpoint, names, architecture="yolov8n_standard"):
     import torch
     from ultralytics import YOLO
     from ultralytics.nn.modules.head import Detect
+    if architecture == "yolov8n_k1_fast":
+        from .architectures import register_k1_fast_modules
+        register_k1_fast_modules()
     model = YOLO(str(checkpoint)).model.cpu().float().eval()
     actual = list(model.names.values()) if isinstance(model.names,dict) else model.names
     if actual != names:
@@ -79,9 +111,10 @@ def raw_model(checkpoint, names):
         raise ValueError("Expected standard three-scale YOLOv8 Detect head")
 
     class RawHead(torch.nn.Module):
-        def __init__(self, source):
+        def __init__(self, source, reference_score_clip=False):
             super().__init__()
             self.cv2,self.cv3 = source.cv2,source.cv3
+            self.reference_score_clip = reference_score_clip
             for key in ["f","i","type","np"]:
                 if hasattr(source,key):
                     setattr(self,key,getattr(source,key))
@@ -91,9 +124,12 @@ def raw_model(checkpoint, names):
             for i in range(3):
                 box = self.cv2[i](features[i])
                 score = self.cv3[i](features[i]).sigmoid()
-                outputs.extend([box,score,score.sum(1,keepdim=True)])
+                summary = score.sum(1, keepdim=True)
+                if self.reference_score_clip:
+                    summary = summary.clamp(0, 1)
+                outputs.extend([box,score,summary])
             return tuple(outputs)
-    model.model[-1] = RawHead(head)
+    model.model[-1] = RawHead(head, architecture == "yolov8n_k1_fast")
     return model
 
 
@@ -103,7 +139,7 @@ def export(cfg,run,checkpoint=None):
     import onnxruntime as ort
     manifest = verify_manifest(run)
     checkpoint = Path(checkpoint) if checkpoint else Path(read_json(run/"training.json")["best"])
-    model = raw_model(checkpoint,cfg.classes["names"])
+    model = raw_model(checkpoint,cfg.classes["names"],cfg["model"]["architecture"])
     hw = cfg.hw("export")
     folder = run/"export";folder.mkdir(parents=True,exist_ok=True)
     output = folder/"model.fp32.onnx"
@@ -118,7 +154,7 @@ def export(cfg,run,checkpoint=None):
     for k,v in metadata.items():
         prop = graph.metadata_props.add();prop.key,prop.value=k,v
     onnx.save(graph,output)
-    contract = check_onnx(output,hw,cfg.classes["nc"])
+    contract = check_onnx(output,hw,cfg.classes["nc"],architecture=cfg["model"]["architecture"])
     session = ort.InferenceSession(str(output),providers=["CPUExecutionProvider"])
     comparisons = []
     samples = [r for r in manifest["images"] if r["split"]=="val"][:3]
@@ -133,6 +169,7 @@ def export(cfg,run,checkpoint=None):
                 raise ValueError(f"PyTorch/ONNX mismatch: {row['path']}; max error={np.max(np.abs(a-b))}")
             errors.append(float(np.max(np.abs(a-b))))
         comparisons.append({"image_sha256":row["sha256"],"max_abs_error_per_output":errors})
-    contract.update(checkpoint_sha256=digest(checkpoint),numerical_comparison=comparisons,environment=environment())
+    contract.update(scheme=cfg["workflow"]["scheme"],checkpoint_sha256=digest(checkpoint),
+                    numerical_comparison=comparisons,environment=environment())
     write_json(folder/"contract.json",contract)
     return output

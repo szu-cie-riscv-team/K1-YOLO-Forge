@@ -33,11 +33,22 @@
 - outputs/replace_smoke/release-replace → dist/replace_smoke/release-replace.zip
 - outputs/smoke/resume-check：中断及续训证据
 
+## 2026-10-19 高速架构补充验证
+
+新增架构在本机 CPU 上用合成 12 张 train / 4 张 val 数据训练 1 epoch，完成 FP32 导出、12 张合成校准图的官方 XSlim 量化、验证评估和部署打包。整条链路通过；合成集 mAP 为 0，符合该随机合成烟测用途，不提供真实识别效果证据。量化阶段耗时约 2.4 秒，仅代表这组小模型/小校准集。
+
+另对 80 类随机初始化模型的 320×320 和 192×320 静态导出做结构检查；两种尺寸均通过 43 Conv、37 LeakyRelu、三尺度九输出合同，网格尺寸分别为 40/20/10 与 24×40、12×20、6×10。所有这些仍是主机静态/合成数据验证，不是 K1 验收。
+
+随后使用本机 15 张 train / 5 张 val 的 red_box 数据训练了 `yolov8n_k1_fast` 200 epoch，并使用 XSlim 2.1.2、opset 17 和目录中实际检出的 91 张校准图完成量化。导出及量化合同通过；FP32 为 opset 17 / IR 8，量化图为 opset 17 / IR 9，均为 43 Conv、37 LeakyRelu、静态 320×320、九路单类别输出。用户在 K1 上实测反馈 fast 量化模型速度接近 Gitee 参考模型；当前没有保存可复核的逐项延迟数据。5 张验证图上的 best mAP50-95 为 0.832，只能作为这批小数据的训练诊断。
+
+正式提供 `workflow.scheme: fast|normal`：fast 是默认方案，使用 K1-fast 架构和 p0/f3 + minmax + percentile 配方；normal 保留此前标准 YOLOv8n 与 XSlim p1/f2 + default 配方。两套配置集中在 `config.example.yaml` 的 `workflow.profiles`，训练、导出和量化产物都会记录方案名。
+
 ## 实施中定位并修复的问题
 
 - ONNX Runtime 1.24.3 没有 Python 3.10 Linux wheel，因此完整安装采用独立 Python 3.11/3.12，并自动处理 Ubuntu 22.04 的默认 3.10。
 - XSlim 导入 PyTorch cpp_extension 需要 setuptools，已显式固定并安装。
 - C2f.chunk 的原始导出带 Shape/Gather/Slice 等形状计算，改为固定通道的 forward_split；最终主网络为 63 Conv、57 Mul、60 Sigmoid，与标准官方参考模型的对应结构一致。
+- 新增 `yolov8n_k1_fast` 近似架构：CPU smoke 构建时检测头 stride 为 8/16/32，重参数化融合后为 43 个 Conv；80 类 ONNX smoke 通过静态检查，包含 37 LeakyRelu、3 Sigmoid、3 ReduceSum+Clip 和参考九输出 shape。合成数据训练和 XSlim smoke 也通过，但不代表真实训练精度或 K1 性能。
 - 训练/验证数据最后执行固定高宽变换，标签与 ratio_pad 同步更新；验证禁用上游可变 batch padding，避免矩形输入再次缩小有效内容。
 - 续训会覆盖 last.pt，缓存键需记录实际消费的 checkpoint 哈希，不能把续训完成后的 checkpoint 当作当时输入。
 
@@ -46,11 +57,11 @@
 - 未使用用户的真实药盒数据，未证明真实识别效果或原 COCO 能力保留。
 - 没有 CUDA GPU 实测；脚本提供 cu126 路线并实际检查 CUDA 可用性，但不宣称此主机已验证 GPU。
 - 未进行另一台独立电脑复现；当前是同一 WSL 主机上的干净环境安装验证。
-- 未进行 K1 EP 接管、分图、相机、延迟/内存和长期测试。
+- 用户已在 K1 上对 fast 量化模型做推理速度实测，反馈接近 Gitee 参考；本验证记录没有可复核的逐项延迟数值。K1 EP 分图、相机、内存和长期运行仍未验证。
 - 未修改 riscv ROS 代码。独立推理支持 N 类，现有 ROS 的 80 类限制仍需配套适配。
-- 43-Conv/LeakyReLU 高速参考结构尚无经过验证的训练实现，当前 architecture 只接受 yolov8n_standard。
+- `yolov8n_k1_fast` 是按公开部署 ONNX 近似重建；已有小规模真实数据训练和 XSlim 量化记录，但这不证明充分收敛或业务精度；原始训练源码与浮点 checkpoint 未公开。
 - 当前保留原类模式仅支持 provided 自定义划分，并需要原类回放和独立原类验证数据。
 - AP 是检测 TXT 场景的 COCO-style 101 点协议，不包含 COCO crowd/ignore 元数据。
-- 默认 p1/f2 + default 的特定组合尚未单独实测；已分别验证 p1/f2 + minmax 及 p0/f0 + default。配方仍需真实数据精度和 K1 性能选择。
+- fast/normal 两套 XSlim 配方已在配置中分开；normal 复用原 p1/f2 配置，fast 已在本机真实小数据链路上量化。精度选择仍需更多独立数据验证。
 
 本轮没有修改原始三份参考模型、riscv 工程或 K1 板端环境。

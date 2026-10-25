@@ -15,7 +15,8 @@ from .exporting import check_onnx,expected_shapes
 def quantize(cfg,run):
     manifest = verify_manifest(run)
     source = run/"export/model.fp32.onnx"
-    check_onnx(source,cfg.hw("export"),cfg.classes["nc"])
+    check_onnx(source,cfg.hw("export"),cfg.classes["nc"],
+               architecture=cfg["model"]["architecture"])
     if importlib.metadata.version("xslim") != "2.1.2":
         raise ValueError("Quantization requires the separate official XSlim 2.1.2 environment")
     folder = run/"quantize";folder.mkdir(parents=True,exist_ok=True)
@@ -29,6 +30,12 @@ def quantize(cfg,run):
     device = ("cuda" if torch.cuda.is_available() else "cpu") if device=="auto" else device
     if device not in {"cpu","cuda"} or (device=="cuda" and not torch.cuda.is_available()):
         raise ValueError("Requested calibration device unavailable (use cpu/cuda/auto)")
+    quantization_parameters = {
+        "precision_level":cfg["quantize"]["precision_level"],
+        "finetune_level":cfg["quantize"]["finetune_level"],
+        "analysis_enable":cfg["quantize"]["analysis_enable"]}
+    if cfg["quantize"].get("max_percentile") is not None:
+        quantization_parameters["max_percentile"] = cfg["quantize"]["max_percentile"]
     config = {
         "model_parameters":{"onnx_model":str(source),"working_dir":str(folder),"output_prefix":"model","opset":17},
         "calibration_parameters":{"calibration_step":count,"calibration_batch_size":1,"calibration_device":device,
@@ -37,8 +44,7 @@ def quantize(cfg,run):
                 "mean_value":[0.,0.,0.],"std_value":[255.,255.,255.],"file_type":"img",
                 "preprocess_file":str(Path(__file__).with_name("preprocess.py"))+":xslim_preprocess",
                 "data_list_path":str(folder/"calibration.txt")} ]},
-        "quantization_parameters":{"precision_level":cfg["quantize"]["precision_level"],
-            "finetune_level":cfg["quantize"]["finetune_level"],"analysis_enable":cfg["quantize"]["analysis_enable"]}}
+        "quantization_parameters":quantization_parameters}
     write_json(folder/"xslim.json",config)
     target = folder/"model.q.onnx"
     run_logged([sys.executable,"-m","xslim","-c",folder/"xslim.json","-i",source,"-o",target,"--opset","17"],folder/"xslim.log")
@@ -63,8 +69,9 @@ def quantize(cfg,run):
     for key,value in keys.items():
         item=model.metadata_props.add();item.key,item.value=key,value
     onnx.save(model,target)
-    contract = check_onnx(target,cfg.hw("export"),cfg.classes["nc"],quantized=True)
-    contract.update(source_sha256=digest(source),calibration_images=count,
+    contract = check_onnx(target,cfg.hw("export"),cfg.classes["nc"],quantized=True,
+                          architecture=cfg["model"]["architecture"])
+    contract.update(scheme=cfg["workflow"]["scheme"],source_sha256=digest(source),calibration_images=count,
                     environment=environment(),shape_annotations="restored after actual CPU runtime shape verification")
     write_json(folder/"contract.json",contract)
     return target

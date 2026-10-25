@@ -28,7 +28,36 @@ class Config:
         supplied = yaml.safe_load(self.filename.read_text(encoding="utf-8"))
         if not isinstance(supplied, dict):
             raise ValueError("Configuration must be a YAML mapping")
-        self.raw = merge(defaults, supplied)
+        supplied_model = supplied.get("model", {})
+        legacy_architecture = supplied_model.get("architecture") if isinstance(supplied_model, dict) else None
+        merge_input = supplied
+        if legacy_architecture is not None:
+            merge_input = dict(supplied)
+            merge_input["model"] = {k: v for k, v in supplied_model.items() if k != "architecture"}
+        self.raw = merge(defaults, merge_input)
+        scheme = self.raw["workflow"]["scheme"]
+        if "workflow" not in supplied and isinstance(supplied_model, dict):
+            legacy_schemes = {"yolov8n_k1_fast": "fast", "yolov8n_standard": "normal"}
+            if legacy_architecture in legacy_schemes:
+                scheme = legacy_schemes[legacy_architecture]
+                self.raw["workflow"]["scheme"] = scheme
+        profiles = self.raw["workflow"]["profiles"]
+        if scheme not in profiles:
+            raise ValueError("workflow.scheme must be fast or normal")
+        profile = profiles[scheme]
+        legacy_schemes = {"yolov8n_k1_fast": "fast", "yolov8n_standard": "normal"}
+        if legacy_architecture is not None:
+            if legacy_architecture not in legacy_schemes:
+                raise ValueError("Unsupported legacy model.architecture; select workflow.scheme instead")
+            if "workflow" in supplied and legacy_schemes[legacy_architecture] != scheme:
+                raise ValueError("model.architecture conflicts with workflow.scheme; remove it and select a scheme")
+        self.raw["model"]["architecture"] = profile["architecture"]
+        quantize = self.raw["quantize"]
+        quantize["precision_level"] = profile["precision_level"]
+        quantize["finetune_level"] = profile["finetune_level"]
+        quantize["calibration"]["type"] = profile["calibration_type"]
+        quantize["max_percentile"] = profile["max_percentile"]
+        self.scheme = scheme
         self.classes = class_map(self.raw["classes"])
         self.validate()
 
@@ -48,6 +77,8 @@ class Config:
         c = self.raw
         if c["schema_version"] != 1:
             raise ValueError("Unsupported config schema")
+        if c["workflow"]["scheme"] not in {"fast", "normal"}:
+            raise ValueError("workflow.scheme must be fast or normal")
         import re
         if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}", c["project"]["name"]):
             raise ValueError("project.name must be a short alphanumeric/hyphen/underscore name")
@@ -55,8 +86,8 @@ class Config:
             size = self.hw(stage)
             if len(size) != 2 or any(type(x) is not int or x <= 0 or x % 32 for x in size):
                 raise ValueError(f"{stage} input_hw must be [height,width], positive multiples of 32")
-        if c["model"]["architecture"] != "yolov8n_standard":
-            raise ValueError("Only yolov8n_standard is implemented; the 43-Conv reference is not trainable here yet")
+        if c["model"]["architecture"] not in {"yolov8n_standard", "yolov8n_k1_fast"}:
+            raise ValueError("model.architecture must be yolov8n_standard or yolov8n_k1_fast")
         if c["export"]["opset"] != 17 or c["quantize"]["opset"] != 17:
             raise ValueError("This validated K1 route requires opset=17 at export and XSlim stages")
         if c["export"]["batch"] != 1 or c["export"]["dynamic"] or c["export"]["embed_nms"]:
@@ -101,6 +132,9 @@ class Config:
             raise ValueError("This pipeline implements official XSlim 2.1.2")
         if q["precision_level"] not in {0, 1, 2} or q["finetune_level"] not in {0, 1, 2, 3}:
             raise ValueError("Invalid static INT8 XSlim levels")
+        percentile = q.get("max_percentile")
+        if percentile is not None and (not isinstance(percentile, (int, float)) or isinstance(percentile, bool) or not 0 < percentile < 1):
+            raise ValueError("quantize.max_percentile must be null or between 0 and 1")
         if q["calibration"]["batch_size"] != 1 or q["calibration"]["preprocess"] != "shared_letterbox":
             raise ValueError("Static model calibration uses batch=1 and shared_letterbox")
         if type(q["calibration"]["max_samples"]) is not int or q["calibration"]["max_samples"] < 1:

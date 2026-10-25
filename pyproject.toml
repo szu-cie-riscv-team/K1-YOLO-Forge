@@ -15,3 +15,6 @@ k1-yolo = "k1_yolo.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+k1_yolo = ["models/*.yaml"]

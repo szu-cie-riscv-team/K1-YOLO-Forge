@@ -46,13 +46,34 @@ model.input_hw 为 [高,宽]，train/export.input_hw 可覆盖。固定输入支
 
 颜色任务保持 hsv_h=0。可调 epochs、patience、batch、device、workers、optimizer、lr0、weight_decay、freeze、增强和随机种子。auto batch 在 CUDA 采用上游显存估计，在 CPU 使用 4；单张显存不足可显式减小。首版只支持单训练设备，不支持逗号分隔的 DDP 多卡列表。
 
+## 训练量化方案
+
+在 `config.yaml` 中通过一个选项选择整套方案：
+
+```yaml
+workflow:
+  scheme: fast  # fast | normal；默认 fast
+```
+
+`fast` 为默认方案：使用 `yolov8n_k1_fast` 近似架构和 XSlim `p0/f3 + minmax + max_percentile=0.9995` 配方。该架构按公开高速 ONNX 复现了 16/32/64/96/128 通道骨干、LeakyReLU 0.1、RepConv 训练分支及部署重参数化、SPPF、PAN/FPN 路径、三尺度解耦检测头和 64/类别数/1 输出。导出检查会核验 43 个 Conv、37 个 LeakyReLU 及九路输出形状。`summary` 分支按参考图截断到 `[0,1]`。
+
+`normal` 保留此前方案：标准 Ultralytics YOLOv8n 架构与 XSlim `p1/f2 + default` 配方。训练通用参数、分辨率、数据和类别设置在两套方案间共用；方案对应的架构及量化参数集中在 `config.example.yaml` 的 `workflow.profiles.fast/normal` 中，可按需调整。
+
+参考仓库没有公开这份高速模型的训练结构或浮点权重，因此这是**按部署图近似重建**。标准 `yolov8n.pt` 只迁移结构和通道确实匹配的输入 stem、检测头张量；不同的骨干/neck 权重不跨拓扑搬用。若是 `replace_coco`，检测头中被替换类别的输出行会重新初始化，其余已匹配类别行保留作初始化，仍需回放训练和独立回归。不要拿标准架构的 `best.pt` 或 `last.pt` 直接当作高速架构 checkpoint。原有 `yolov8n_standard` 路线继续保留作为基线。
+
+切换方案后必须使用新 run-id 并从训练开始，不能复用另一方案的 checkpoint。用户实测 fast 方案在 K1 上的推理速度接近 Gitee 参考模型；不同芯片固件、运行时和预处理实现仍需在目标设备上实测。
+
 ## 量化与评估
 
 量化输入必须是本流程检查过的 FP32 ONNX，不能再次静态量化参考 .q.onnx。XSlim 以 subprocess 调用，JSON、预处理入口、校准清单和日志均保存。
 
 静态 batch=1 下官方 XSlim 2.1.2 的 calibration_step 限于 10..1000。max_samples 指最多采用的不重复图片数，实际不足会提示；少于 10 张停止。校准源可选训练集或独立图片目录，独立目录不得和 val/test 存在相同解码像素。最终 test 不参与配方选择。
 
-默认 precision_level=1、finetune_level=2；它是官方检测示例起点，不是所有数据的最优配方。p0f0 可用于检查流程，p0f2/p1f2 的速度与精度需实际比较。首版不自动搜索配方。
+fast 配方对照 Gitee `spacemit-demo` YOLOv8 示例映射为 XSlim 参数；normal 保留此前的官方示例候选配方。上游示例记录的是 Xquant 2.0.1；本项目仍使用独立环境中的 XSlim 2.1.2，因此这是配方对照，不是二进制等价复现。`finetune_level=3` 会增加量化校准时间，不代表 K1 推理更快。
+
+fast 方案同时采用近似高速结构和匹配量化参数，但不会复现参考训练权重；normal 的标准 YOLOv8n 部署图有 63 个 Conv，fast 目标为 43 个。两种方案切换时需分别训练、导出和量化后再比较。
+
+输入预处理继续遵循本项目训练合同：RGB、letterbox 填充值 114、除以 255。Gitee demo 的 Python/C++ 预处理并不一致，不能直接混用；C++ 示例还把 `classNum` 固定为 80，custom-only N 类模型必须改成真实类别数。详见 [Gitee YOLOv8 对照](research/2026-10-19-gitee-yolov8-alignment.md)。
 
 评估使用模型实际九输出解码，外部 DFL、最佳类别锚点、类别内 NMS。AP 为 IoU .50:.05:.95、101 召回点的 COCO-style 指标，YOLO TXT 不包含 COCO crowd/ignore 语义；不要与不同后处理协议的数字直接比较。AP 的低分预筛选与部署 confidence_threshold 分开设置。
 

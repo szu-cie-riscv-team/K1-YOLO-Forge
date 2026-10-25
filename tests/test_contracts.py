@@ -69,6 +69,36 @@ def test_reset_only_replaced_classifier_rows():
         assert not torch.equal(w[3:8],branch[-1].weight[3:8])
 
 
+def test_k1_fast_architecture_fuses_to_reference_conv_count():
+    import torch
+    from k1_yolo.architectures import fast_model_yaml,register_k1_fast_modules
+    register_k1_fast_modules()
+    from ultralytics import YOLO
+    model=YOLO(fast_model_yaml()).model
+    assert model.model[-1].stride.tolist()==[8.,16.,32.]
+    model.fuse(verbose=False)
+    convs=[m for m in model.modules() if isinstance(m,torch.nn.Conv2d)]
+    # Detect retains one DFL projection that the raw nine-output export bypasses.
+    assert len(convs)-1==43
+
+
+def test_k1_fast_config_is_selectable(tmp_path):
+    p=tmp_path/"config.yaml";p.write_text("workflow:\n  scheme: fast\n")
+    cfg=Config(p,ROOT)
+    assert cfg["workflow"]["scheme"]=="fast"
+    assert cfg["model"]["architecture"]=="yolov8n_k1_fast"
+    assert (cfg["quantize"]["precision_level"],cfg["quantize"]["finetune_level"],
+            cfg["quantize"]["calibration"]["type"])==(0,3,"minmax")
+
+
+def test_normal_scheme_restores_previous_training_quantization_profile(tmp_path):
+    p=tmp_path/"config.yaml";p.write_text("workflow:\n  scheme: normal\n")
+    cfg=Config(p,ROOT)
+    assert cfg["model"]["architecture"]=="yolov8n_standard"
+    assert (cfg["quantize"]["precision_level"],cfg["quantize"]["finetune_level"],
+            cfg["quantize"]["calibration"]["type"])==(1,2,"default")
+
+
 def test_dfl_decode_and_perfect_ap():
     outputs=[]
     for stride in [8,16,32]:
